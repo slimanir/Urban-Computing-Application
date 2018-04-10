@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Sensor accelerometer; // defining the sensor
     TextView xValue, yValue, zValue;
     DatabaseReference databaseReference;
-    private Button button;
+    Button button;
 
 
     private long lastUpdate = 0;
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dataOnMaps();
+                startActivity(new Intent(MainActivity.this, MapsActivity.class));
             }
         });
 
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(MainActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL); // Listener registration.
         Log.d(TAG, "onCreate:Registered accelerometer listener");
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("SensorData");
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("AccelerometerData");
 
 
     }
@@ -90,10 +90,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Float X = sensorEvent.values[0];
         Float Y = sensorEvent.values[1];
         Float Z =sensorEvent.values[2];
+
         // Getting the systems current time
         long curTime = System.currentTimeMillis();
         // Check the last sensor update in the last 100 ms
-        if ((curTime - lastUpdate) > 100) {
+        if ((curTime - lastUpdate) > 200) {
             long diffTime = (curTime - lastUpdate);
             lastUpdate = curTime;
             // Calculating the phone's accelerometer speed
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             last_y = Y;
             last_z = Z;
         }
+
         /**
          * Uploading the data in the firebase realtime database
          */
@@ -117,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         databaseReference.child(String.valueOf(new Date().getTime())).setValue(" X Axis : " + X + "|" +  " Y Axis : " +  Y + "|"  + " Z Axis :" + Z);
 
     }
-// When the app is in the background the accelerometer is in standby mode to save battery consumption
+    // When the app is in the background the accelerometer is in standby mode to save battery consumption
     @Override
     protected void onPause() {
         super.onPause();
@@ -128,19 +130,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-// When the app is opened again the accelerometer start to update the values.
+    // When the app is opened again the accelerometer start to update the values.
     @Override
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, sensorManager.SENSOR_DELAY_NORMAL);
     }
-// When we leave the application, the accelerometer stops
+    // When we leave the application, the accelerometer stops
     @Override
     protected void onDestroy() {
         super.onDestroy();
         sensorManager.unregisterListener(this);
     }
-// Writing the accelerometer Values to the database.
+    // Writing the accelerometer Values to the database.
     @Override
     protected void onStart() {
         super.onStart();
@@ -156,12 +158,5 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onCancelled(DatabaseError databaseError) {
 
     }
-    public void dataOnMaps(){
-        Intent intent = new Intent(this,MapsActivity.class);
-        dataOnMaps();
-
-    }
 
 }
-
-
